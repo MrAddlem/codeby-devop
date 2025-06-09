@@ -1,3 +1,4 @@
 # codeby-devop
-# 2-Step
+# 1st step
+# 2nd step
 # 3th step
