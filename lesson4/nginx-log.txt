@@ -1,0 +1,97 @@
+Script started on 2025-06-10 12:53:45+03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="181" LINES="51"]
+[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl stati[Kus[1P[1P[1P[1P[1P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C nginx
+[?2004l[?1h=[0;1;32m●[0m nginx.service - A high performance web server and a reverse proxy server[m
+     Loaded: loaded (]8;;file://ksb-199/usr/lib/systemd/system/nginx.service/usr/lib/systemd/system/nginx.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)[m
+     Active: [0;1;32mactive (running)[0m since Tue 2025-06-10 12:52:12 MSK; 1min 43s ago[m
+       Docs: ]8;;man:nginx(8)man:nginx(8)]8;;[m
+   Main PID: 3474 (nginx)[m
+      Tasks: 13 (limit: 19058)[m
+     Memory: 8.8M ()[m
+     CGroup: /system.slice/nginx.service[m
+             ├─[0;38;5;245m3474 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"[0m[m
+             ├─[0;38;5;245m3475 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3476 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3477 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3478 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3480 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3481 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3482 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3483 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3484 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3485 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3486 "nginx: worker process"[0m[m
+             └─[0;38;5;245m3487 "nginx: worker process"[0m[m
+[m
+Jun 10 12:52:12 ksb-199 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:52:12 ksb-199 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.[m
+[K[?1l>[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ systemctl status nginx[1P nginx[1P nginx[1P nginx[1P nginxo nginxp nginx
+[?2004l[0;1;31mFailed to stop nginx.service: Interactive authentication required.[0m
+[0;1;31mSee system logs and 'systemctl status nginx.service' for details.[0m
+[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo !!
+[?2004lsudo systemctl stop nginx
+[sudo] password for montero231: 
+[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl stop nginx[4P nginxd nginxi nginxs nginxa nginxb nginxl nginxe nginx^M nginx[2P nginx[1P nginxe nginx
+[?2004lSynchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install disable nginx
+Removed "/etc/systemd/system/multi-user.target.wants/nginx.service".
+[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl disable nginx[3Pstop[C[C[C[C[C[C[5P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[2@atus[C[C[C[C[C[C
+[?2004l[?1h=○ nginx.service - A high performance web server and a reverse proxy server[m
+     Loaded: loaded (]8;;file://ksb-199/usr/lib/systemd/system/nginx.service/usr/lib/systemd/system/nginx.service]8;;; [0;1;38;5;185mdisabled[0m; preset: [0;1;32menabled[0m)[m
+     Active: inactive (dead)[m
+       Docs: ]8;;man:nginx(8)man:nginx(8)]8;;[m
+[m
+Jun 10 12:48:00 ksb-199 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:48:00 ksb-199 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.[m
+Jun 10 12:48:44 ksb-199 systemd[1]: Stopping nginx.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:48:44 ksb-199 systemd[1]: nginx.service: Deactivated successfully.[m
+Jun 10 12:48:44 ksb-199 systemd[1]: Stopped nginx.service - A high performance web server and a reverse proxy server.[m
+Jun 10 12:52:12 ksb-199 systemd[1]: Starting nginx.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:52:12 ksb-199 systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.[m
+Jun 10 12:54:06 ksb-199 systemd[1]: Stopping nginx.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:54:06 ksb-199 systemd[1]: nginx.service: Deactivated successfully.[m
+Jun 10 12:54:06 ksb-199 systemd[1]: Stopped nginx.service - A high performance web server and a reverse proxy server.[m
+[K[?1l>[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ cp [1@s[1@u[1@d[1@o[1@ [C[C[C[7m/usr/lib/systemd/system/nginx.service[27m/usr/lib/systemd/system/nginx.service [7m/usr/lib/systemd/system/nginx.service[27m/usr/lib/systemd/system/nginx.serviced.servicee.servicev.service
+[?2004l[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl status nginxdev.service 
+[?2004l[?1h=○ nginxdev.service - A high performance web server and a reverse proxy server[m
+     Loaded: loaded (]8;;file://ksb-199/usr/lib/systemd/system/nginxdev.service/usr/lib/systemd/system/nginxdev.service]8;;; [0;1;38;5;185mdisabled[0m; preset: [0;1;32menabled[0m)[m
+     Active: inactive (dead)[m
+       Docs: ]8;;man:nginx(8)man:nginx(8)]8;;[m
+[m
+Jun 10 12:50:51 ksb-199 systemd[1]: Starting nginxdev.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:50:51 ksb-199 systemd[1]: Started nginxdev.service - A high performance web server and a reverse proxy server.[m
+Jun 10 12:51:08 ksb-199 systemd[1]: Stopping nginxdev.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:51:08 ksb-199 systemd[1]: nginxdev.service: Deactivated successfully.[m
+Jun 10 12:51:08 ksb-199 systemd[1]: Stopped nginxdev.service - A high performance web server and a reverse proxy server.[m
+[K[?1l>[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl status nginxdev.service [1P[1P[1P[1@r[1@t
+[?2004l[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl start nginxdev.service [5P[1@d[1@i[1@s[4@able
+[?2004l[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl disable nginxdev.service [7P[1@e[1@n[1@a[3@ble
+[?2004lCreated symlink /etc/systemd/system/multi-user.target.wants/nginxdev.service → /usr/lib/systemd/system/nginxdev.service.
+[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ sudo systemctl enable nginxdev.service [1@dis[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[1@~[1P[1P[1P[1P[1P[1P[1P[1P[1@s[1@t[1@a[1@t[1@u[1@s
+[?2004l[?1h=[0;1;32m●[0m nginxdev.service - A high performance web server and a reverse proxy server[m
+     Loaded: loaded (]8;;file://ksb-199/usr/lib/systemd/system/nginxdev.service/usr/lib/systemd/system/nginxdev.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)[m
+     Active: [0;1;32mactive (running)[0m since Tue 2025-06-10 12:54:53 MSK; 17s ago[m
+       Docs: ]8;;man:nginx(8)man:nginx(8)]8;;[m
+   Main PID: 3781 (nginx)[m
+      Tasks: 13 (limit: 19058)[m
+     Memory: 8.8M ()[m
+     CGroup: /system.slice/nginxdev.service[m
+             ├─[0;38;5;245m3781 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"[0m[m
+             ├─[0;38;5;245m3782 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3783 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3784 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3785 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3786 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3787 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3788 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3789 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3790 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3791 "nginx: worker process"[0m[m
+             ├─[0;38;5;245m3793 "nginx: worker process"[0m[m
+             └─[0;38;5;245m3794 "nginx: worker process"[0m[m
+[m
+Jun 10 12:54:53 ksb-199 systemd[1]: Starting nginxdev.service - A high performance web server and a reverse proxy server...[m
+Jun 10 12:54:53 ksb-199 systemd[1]: Started nginxdev.service - A high performance web server and a reverse proxy server.[m
+[K[?1l>[?2004h]0;montero231@ksb-199: ~/codeby-devop/lesson4[01;32mmontero231@ksb-199[00m:[01;34m~/codeby-devop/lesson4[00m$ ls[K[Kexit
+[?2004lexit
+
+Script done on 2025-06-10 12:55:31+03:00 [COMMAND_EXIT_CODE="0"]
