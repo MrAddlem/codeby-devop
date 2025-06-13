@@ -1,3 +1,1 @@
-# codeby-devop
-# lesson3
-# second wave
+# Home work CodeBy
