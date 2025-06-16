@@ -14,7 +14,7 @@ mkdir -p /etc/apache2/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout /etc/apache2/ssl/svt.local.key \
   -out /etc/apache2/ssl/svt.local.crt \
-  -subj "/C=US/ST=State/L=City/O=Company/CN=svt.local"
+  -subj "/C=RU/ST=Cheb/L=Cheboksary/O=HomeC/CN=svt.local"
 
 # Создаем конфигурационный файл для svt.local
 cat > /etc/apache2/sites-available/svt.local.conf <<EOF
