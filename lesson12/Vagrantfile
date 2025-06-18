@@ -1,17 +1,13 @@
 Vagrant.configure("2") do |config|
-  # Создаем ssh ключ
-#  unless File.exist?("keys/vagrant_rsa")
-#    system("mkdir -p keys && ssh-keygen -t rsa -b 4096 -f keys/vagrant_rsa -N '' -q")
-#  end
+  config.vm.define "dev" do |dev|
+    dev.vm.box = "ubuntu/focal64"
+    dev.vm.hostname = "dev"
+    dev.vm.network "private_network", ip: "192.168.56.11"
+  end
 
-  # prod VM конфиг
   config.vm.define "prod" do |prod|
     prod.vm.box = "ubuntu/focal64"
     prod.vm.hostname = "prod"
-    prod.vm.network "private_network", ip: "192.168.56.16"
-    prod.vm.boot_timeout = 600    
-  #  prod.vm.provision "file", source: "keys/vagrant_rsa.pub", destination: "/home/vagrant/.ssh/authorized_keys"
-  #  prod.vm.provision "shell", path: "scripts/common.sh"
-  #  prod.vm.provision "shell", path: "scripts/prod.sh"
+    prod.vm.network "private_network", ip: "192.168.56.12"
   end
 end
