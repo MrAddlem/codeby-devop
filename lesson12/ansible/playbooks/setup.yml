@@ -1,0 +1,25 @@
+---
+- name: Setup servers
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - wget
+        - htop
+        - nginx
+
+    - name: Ensure nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Show environment info
+      debug:
+        msg: "This host is in {{ env }} environment."
