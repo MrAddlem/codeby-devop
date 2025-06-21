@@ -1,0 +1,9 @@
+---
+mysql_packages:
+  - mysql-server
+  - mysql-client
+mysql_service_name: mysql
+mysql_root_password: "secure_password"
+wp_db_name: wordpress
+wp_db_user: wpuser
+wp_db_password: wppassword
