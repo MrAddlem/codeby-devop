@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    mysql_root_password: "secure_root_password"
+    wp_db_password: "secure_wp_password"
+    wp_db_name: "wordpress"
+    wp_db_user: "wordpress"
+  roles:
+    - mysql
+    - apache

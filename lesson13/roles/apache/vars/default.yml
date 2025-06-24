@@ -1,0 +1,10 @@
+apache_php_packages:
+  - apache2
+  - php
+  - php-mysql
+  - libapache2-mod-php
+apache_service: apache2
+apache_user: www-data
+apache_group: www-data
+wp_install_dir: /var/www/html
+wp_checksum: "3c654d079bc42c4e82ff20a6948c456293e104b6762ff7c9fc948071b3310328"

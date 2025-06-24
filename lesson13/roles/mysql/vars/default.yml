@@ -1,0 +1,8 @@
+mysql_packages:
+  - mysql-server
+  - mysql-client
+  - python3-mysqldb
+mysql_service: mysqld
+mysql_secure_installation: true
+wp_db_name: wordpress
+wp_db_user: wordpress
