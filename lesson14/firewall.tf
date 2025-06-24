@@ -1,4 +1,3 @@
-# lesson14/firewall.tf
 resource "proxmox_virtual_environment_firewall_rules" "public_rules" {
   node_name = "pve"
   vm_id     = proxmox_virtual_environment_vm.public_vm.vm_id

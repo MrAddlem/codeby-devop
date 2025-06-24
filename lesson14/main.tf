@@ -2,16 +2,16 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.38.0"
+      version = ">=0.77.0"
     }
   }
 }
 
 provider "proxmox" {
-  pm_api_url          = "https://192.168.15.15:8006/api2/json"
-  pm_api_token_id     = "montero231@pve!montero231"
-  pm_api_token_secret = "502f01d6-f8fc-4937-be31-dbb50f533b04"
-  pm_tls_insecure     = true
+  endpoint            = "https://10.38.16.18:8006/api2/json"
+  username            = "secret@pam"
+  password            = "secret_password"
+  insecure            = true
 }
 
 resource "proxmox_virtual_environment_vm" "public_vm" {
@@ -21,7 +21,8 @@ resource "proxmox_virtual_environment_vm" "public_vm" {
   vm_id       = 100
 
   network_device {
-    bridge = "vmbr0"
+    bridge = "vmbr2"
+    vlan_id = 23
   }
 
   operating_system {
@@ -30,7 +31,7 @@ resource "proxmox_virtual_environment_vm" "public_vm" {
 
   disk {
     datastore_id = "Data"
-    file_id      = "local:iso/debian-12.9.0-amd64-netinst.iso"
+    file_id      = "local:iso/debian-12.11.0-amd64-netinst.iso"
     interface    = "scsi0"
     size         = 20
   }
@@ -38,13 +39,13 @@ resource "proxmox_virtual_environment_vm" "public_vm" {
   initialization {
     ip_config {
       ipv4 {
-        address = "192.168.15.115/24"
-        gateway = "192.168.15.1"
+        address = "10.38.23.135/24"
+        gateway = "10.38.23.253"
       }
     }
     user_account {
-      username = "admin"
-      password = "admin"
+      username = "root"
+      password = "root"
     }
   }
 
@@ -58,9 +59,9 @@ resource "proxmox_virtual_environment_vm" "public_vm" {
 
     connection {
       type     = "ssh"
-      user     = "admin"
-      password = "admin"
-      host     = "192.168.15.115"
+      user     = "root"
+      password = "root"
+      host     = "10.38.23.135"
     }
   }
 }
@@ -68,11 +69,12 @@ resource "proxmox_virtual_environment_vm" "public_vm" {
 resource "proxmox_virtual_environment_vm" "private_vm" {
   name        = "private-vm"
   description = "Private VM with Nginx"
-  node_name   = "pve"
-  vm_id       = 101
+  node_name   = "ex10"
+  vm_id       = 501
 
   network_device {
-    bridge = "vmbr1"
+    bridge = "vmbr2"
+    vlan_id = 21
   }
 
   operating_system {
@@ -81,7 +83,7 @@ resource "proxmox_virtual_environment_vm" "private_vm" {
 
   disk {
     datastore_id = "Data"
-    file_id      = "local:iso/debian-12.9.0-amd64-netinst.iso"
+    file_id      = "local:iso/debian-12.11.0-amd64-netinst.iso"
     interface    = "scsi0"
     size         = 20
   }
@@ -89,13 +91,13 @@ resource "proxmox_virtual_environment_vm" "private_vm" {
   initialization {
     ip_config {
       ipv4 {
-        address = "192.168.15.135/24"
-        gateway = "192.168.15.1"
+        address = "10.38.21.135/24"
+        gateway = "10.38.21.1"
       }
     }
     user_account {
-      username = "admin"
-      password = "admin1"
+      username = "root"
+      password = "root1"
     }
   }
 
@@ -110,9 +112,9 @@ resource "proxmox_virtual_environment_vm" "private_vm" {
 
     connection {
       type     = "ssh"
-      user     = "admin"
-      password = "admin1"
-      host     = "192.168.15.135"
+      user     = "root"
+      password = "root1"
+      host     = "10.38.21.135"
     }
   }
 }
