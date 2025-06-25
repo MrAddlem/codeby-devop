@@ -1,3 +1,13 @@
+
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "bpg/proxmox"
+      version = "0.78.0"
+    }
+  }
+}
+
 data "proxmox_virtual_environment_network_linux_bridges" "bridges" {
   node_name = var.node_name
 }

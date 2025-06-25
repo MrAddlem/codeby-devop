@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "bpg/proxmox"
+      version = "0.78.0"
+    }
+  }
+}
+
 module "subnets" {
   source    = "../data-subnets"
   node_name = var.node_name
