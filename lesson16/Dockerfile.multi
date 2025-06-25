@@ -1,0 +1,19 @@
+# Сборка
+FROM python:3.10-slim AS builder
+
+WORKDIR /usr/src/app
+
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# Запуск
+FROM python:3.10-slim
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /usr/src/app .
+
+EXPOSE 8080
+
+CMD ["python", "hello.py"]
