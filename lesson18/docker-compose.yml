@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # MySQL сервис
+  db:
+    image: mysql:5.7
+    container_name: wordpress_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  # WordPress сервис
+  app:
+    image: wordpress:latest
+    container_name: wordpress_app
+    restart: always
+    depends_on:
+      - db
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+    volumes:
+      - ./wordpress:/var/www/html
+    networks:
+      - backend
+      - frontend
+
+  # Nginx сервис
+  proxy:
+    image: nginx:alpine
+    container_name: wordpress_proxy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - frontend
+
+# Сети
+networks:
+  backend:
+  frontend:
