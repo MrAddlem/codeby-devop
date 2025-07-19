@@ -1,0 +1,64 @@
+# Global values
+global:
+  storageClass: "standard"
+
+# WordPress configuration
+wordpress:
+  replicaCount: 1
+  image:
+    repository: wordpress
+    tag: php8.1-apache
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+  env:
+    WORDPRESS_DB_HOST: "wordpress-mysql"
+    WORDPRESS_DB_NAME: "wordpress"
+    WORDPRESS_TABLE_PREFIX: "wp_"
+
+# MySQL configuration
+mysql:
+  enabled: true
+  auth:
+    rootPassword: ""
+    database: "wordpress"
+    username: "wordpress"
+    password: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+      accessMode: ReadWriteOnce
+      storageClass: ""
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: wordpress.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
