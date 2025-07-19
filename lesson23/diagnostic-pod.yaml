@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diagnostic-tool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diagnostic-tool
+  template:
+    metadata:
+      labels:
+        app: diagnostic-tool
+    spec:
+      serviceAccountName: diagnostic-sa
+      containers:
+      - name: diagnostic-container
+        image: bitnami/kubectl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - while true; do
+            echo "Discovered WordPress pods:";
+            kubectl get pods -l app=wordpress -o jsonpath='{.items[*].metadata.name}';
+            echo "";
+            sleep 30;
+          done
