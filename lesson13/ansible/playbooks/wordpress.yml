@@ -8,5 +8,5 @@
     wp_db_password: "wppassword123"
 
   roles:
-    - mysql
+    - mysql-server
     - apache

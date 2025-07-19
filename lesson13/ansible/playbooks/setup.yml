@@ -19,12 +19,6 @@
         state: started
         enabled: yes
 
-    - name: Start and enable Mysql-Server
-      service:
-        name: mysql
-        state: started
-        enable: yes
-
     - name: Show environment info
       debug:
         msg: "This host is in {{ env }} environment"
