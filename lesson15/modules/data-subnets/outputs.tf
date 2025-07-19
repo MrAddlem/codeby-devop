@@ -1,12 +1,13 @@
 output "subnets" {
-  value       = local.subnets
-  description = "List of all subnets with their attributes"
-}
-
-output "subnets_by_zone" {
+  description = "Information about all subnets in the VPC"
   value = {
-    for subnet in local.subnets :
-    subnet.zone => subnet...
+    for subnet in data.yandex_vpc_subnet.subnets :
+    subnet.id => {
+      id          = subnet.id
+      name        = subnet.name
+      zone        = subnet.zone
+      v4_cidr     = subnet.v4_cidr_blocks
+      route_table = subnet.route_table_id
+    }
   }
-  description = "Subnets grouped by zone"
 }

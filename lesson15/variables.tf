@@ -1,66 +1,52 @@
-variable "proxmox_api_url" {
+variable "yc_token" {
+  description = "Yandex Cloud OAuth token"
   type        = string
-  description = "URL of the Proxmox API"
-}
-
-variable "proxmox_username" {
-  type        = string
-  description = "Username for Proxmox API authentication"
-}
-
-variable "proxmox_password" {
-  type        = string
-  description = "Password for Proxmox API authentication"
   sensitive   = true
 }
 
-variable "proxmox_insecure" {
-  type        = bool
-  description = "Whether to skip TLS verification"
-  default     = false
-}
-
-variable "template_id" {
+variable "yc_cloud_id" {
+  description = "Yandex Cloud ID"
   type        = string
-  description = "ID of the LXC template to use"
+  sensitive   = true
 }
 
-variable "hostname" {
+variable "yc_folder_id" {
+  description = "Yandex Cloud Folder ID"
   type        = string
-  description = "Hostname for the LXC container"
+  sensitive   = true
 }
 
-variable "lxc_node_name" {
+variable "yc_zone" {
+  description = "Yandex Cloud default zone"
   type        = string
-  description = "Proxmox node name where LXC will be created"
+  default     = "ru-central1-a"
 }
 
-variable "lxc_vm_id" {
-  type        = number
-  description = "Unique ID for the LXC container"
-}
-
-variable "lxc_zone" {
+variable "vpc_id" {
+  description = "ID of the VPC network"
   type        = string
-  description = "Zone for network selection"
 }
 
-variable "lxc_ip_address" {
+variable "vm_name" {
+  description = "Name of the virtual machine"
   type        = string
-  description = "IP address for the container"
+  default     = "terraform-vm"
 }
 
-variable "lxc_gateway" {
+variable "vm_image_id" {
+  description = "ID of the image to use for the VM"
   type        = string
-  description = "Network gateway for the container"
+  default     = "fd87va5cc00gaq2f5qfb" # Ubuntu 20.04
 }
 
-variable "lxc_one" {
-  description = "Description for lxc_one variable"
-  type        = string # укажите правильный тип (string, number, bool и т.д.)
+variable "vm_user" {
+  description = "Username for SSH access"
+  type        = string
+  default     = "ubuntu"
 }
 
-variable "mplate_id" {
-  description = "Description for mplate_id variable"
-  type        = string # укажите правильный тип
+variable "vm_ssh_key_path" {
+  description = "Path to the public SSH key"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
 }

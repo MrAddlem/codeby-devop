@@ -1,31 +1,17 @@
-
 terraform {
   required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "0.78.0"
+    yandex = {
+      source = "yandex-cloud/yandex"
+      version = ">= 0.89.0" # Укажите актуальную версию
     }
   }
 }
 
-data "proxmox_virtual_environment_network_linux_bridges" "bridges" {
-  node_name = var.node_name
+data "yandex_vpc_subnet" "subnets" {
+  for_each = toset(data.yandex_vpc_network.selected.subnet_ids)
+  subnet_id = each.key
 }
 
-data "proxmox_virtual_environment_network_linux_vlans" "vlans" {
-  depends_on = [data.proxmox_virtual_environment_network_linux_bridges.bridges]
-  node_name  = var.node_name
-}
-
-locals {
-  subnets = flatten([
-    for bridge in data.proxmox_virtual_environment_network_linux_bridges.bridges.linux_bridges : [
-      for vlan in data.proxmox_virtual_environment_network_linux_vlans.vlans.linux_vlans : {
-        name   = "${bridge.name}.${vlan.vlan}"
-        bridge = bridge.name
-        vlan   = vlan.vlan
-        zone   = try(vlan.comments, "default")
-      } if vlan.interface == bridge.name
-    ]
-  ])
+data "yandex_vpc_network" "selected" {
+  network_id = var.vpc_id
 }

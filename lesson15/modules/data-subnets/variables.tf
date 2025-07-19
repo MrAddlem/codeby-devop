@@ -1,4 +1,4 @@
-variable "node_name" {
+variable "vpc_id" {
+  description = "ID of the VPC network"
   type        = string
-  description = "Name of the Proxmox node to query subnets from"
 }

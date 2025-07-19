@@ -1,27 +1,30 @@
 terraform {
   required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "0.78.0"
+    yandex = {
+      source = "yandex-cloud/yandex"
+      version = ">= 0.89.0" # Укажите актуальную версию
     }
   }
 }
 
-provider "proxmox" {
-  # Configuration options
-  endpoint = var.proxmox_api_url
-  username = var.proxmox_username
-  password = var.proxmox_password
-  insecure = var.proxmox_insecure
+provider "yandex" {
+  token     = var.yc_token
+  cloud_id  = var.yc_cloud_id
+  folder_id = var.yc_folder_id
+  zone      = var.yc_zone
 }
 
-module "lxc" {
-  source     = "./modules/create-lxc"
-  node_name  = var.lxc_node_name
-  vm_id      = var.lxc_vm_id
-  zone       = var.lxc_zone
-  ip_address = var.lxc_ip_address
-  gateway    = var.lxc_gateway
-  template_id = var.template_id
-  hostname   = var.hostname
+module "subnets_data" {
+  source    = "./modules/data-subnets"
+  vpc_id    = var.vpc_id
+}
+
+module "vm_creation" {
+  source          = "./modules/vm-creation"
+  subnets         = module.subnets_data.subnets
+  zone            = var.yc_zone
+  vm_name         = var.vm_name
+  vm_image_id     = var.vm_image_id
+  vm_user         = var.vm_user
+  vm_ssh_key_path = var.vm_ssh_key_path
 }
