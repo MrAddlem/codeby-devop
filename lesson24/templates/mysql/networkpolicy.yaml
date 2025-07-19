@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "wordpress.fullname" . }}-mysql
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "wordpress.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mysql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "wordpress.selectorLabels" . | nindent 14 }}
+              app.kubernetes.io/component: wordpress
+      ports:
+        - port: 3306
+          protocol: TCP
