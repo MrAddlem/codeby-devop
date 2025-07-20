@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # Reddit App services
+  ui:
+    image: nginx:alpine  # Рабочий образ вместо ghcr.io/codeby-devops/ui:monitoring
+    ports:
+      - 9292:80
+    networks:
+      - reddit
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+    labels:
+      prometheus-job: "ui"
+      prometheus-port: "80"
+
+  post:
+    image: mongo:6.0  # Рабочий образ вместо ghcr.io/codeby-devops/post:monitoring
+    networks:
+      - reddit
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+    labels:
+      prometheus-job: "post"
+      prometheus-port: "27017"
+
+  comment:
+    image: redis:alpine  # Рабочий образ вместо ghcr.io/codeby-devops/comment:monitoring
+    networks:
+      - reddit
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+    labels:
+      prometheus-job: "comment"
+      prometheus-port: "6379"
+
+  # Monitoring services (остаются без изменений)
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - reddit
+    depends_on:
+      - ui
+      - post
+      - comment
+      - cadvisor
+      - blackbox
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+    networks:
+      - reddit
+    depends_on:
+      - prometheus
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - reddit
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.24.0
+    ports:
+      - 9115:9115
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - reddit
+
+networks:
+  reddit:
+    driver: bridge
+
+volumes:
+  grafana_data:
