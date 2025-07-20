@@ -1,0 +1,131 @@
+pipeline {
+    agent any
+    
+    options {
+        skipDefaultCheckout true
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: 'github', url: 'https://github.com/MrAddlem/codeby-devop.git'
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                dir('app') {
+                    script {
+                        def changedApps = getChangedApplications()
+                        
+                        parallel changedApps.collectEntries { app ->
+                            ["Build ${app.capitalize()}": {
+                                stage("Build ${app}") {
+                                    when { 
+                                        expression { changedApps.contains(app) } 
+                                    }
+                                    steps {
+                                        buildApp(app)
+                                    }
+                                }
+                            }]
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                script {
+                    def changedApps = getChangedApplications()
+                    
+                    parallel changedApps.collectEntries { app ->
+                        ["Test ${app.capitalize()}": {
+                            stage("Test ${app}") {
+                                when { 
+                                    expression { changedApps.contains(app) } 
+                                }
+                                steps {
+                                    testApp(app)
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    def changedApps = getChangedApplications()
+                    
+                    parallel changedApps.collectEntries { app ->
+                        ["Deploy ${app.capitalize()}": {
+                            stage("Deploy ${app}") {
+                                when { 
+                                    expression { changedApps.contains(app) } 
+                                }
+                                steps {
+                                    deployApp(app)
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+    }
+}
+
+def getChangedApplications() {
+    def changedFiles = []
+    def changedApps = []
+    
+    // Используем команду git для получения измененных файлов
+    def gitDiff = sh(script: 'git diff --name-only HEAD HEAD~1', returnStdout: true).trim()
+    changedFiles = gitDiff.split('\n')
+    
+    // Определяем какие приложения были изменены
+    if (changedFiles.any { it.startsWith('lesson26/hello-world/') }) {
+        changedApps << 'hello-world'
+    }
+    if (changedFiles.any { it.startsWith('lesson26/hello-jenkins/') }) {
+        changedApps << 'hello-jenkins'
+    }
+    if (changedFiles.any { it.startsWith('lesson26/hello-devops/') }) {
+        changedApps << 'hello-devops'
+    }
+    
+    // Если не найдено изменений в конкретных приложениях, собираем все (для первого запуска)
+    if (changedApps.isEmpty() && currentBuild.previousBuild == null) {
+        changedApps = ['hello-world', 'hello-jenkins', 'hello-devops']
+    }
+    
+    return changedApps
+}
+
+def buildApp(appName) {
+    echo "Building ${appName}"
+    dir("lesson26/${appName}") {
+        // Здесь команды для сборки вашего приложения
+        sh 'mvn clean package' // или gradle, или другие команды
+    }
+}
+
+def testApp(appName) {
+    echo "Testing ${appName}"
+    dir("lesson26/${appName}") {
+        // Здесь команды для тестирования
+        sh 'mvn test'
+    }
+}
+
+def deployApp(appName) {
+    echo "Deploying ${appName}"
+    dir("lesson26/${appName}") {
+        // Здесь команды для деплоя/запуска
+        sh 'java -jar target/*.jar &'
+    }
+}
