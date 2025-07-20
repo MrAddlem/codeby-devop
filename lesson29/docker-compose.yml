@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # Reddit App services
-  ui:
-    image: nginx:alpine  # Рабочий образ вместо ghcr.io/codeby-devops/ui:monitoring
+   ui:
+    image: nginx:alpine 
     ports:
       - 9292:80
     networks:
@@ -18,7 +17,7 @@ services:
       prometheus-port: "80"
 
   post:
-    image: mongo:6.0  # Рабочий образ вместо ghcr.io/codeby-devops/post:monitoring
+    image: mongo:6.0 
     networks:
       - reddit
     deploy:
@@ -31,7 +30,7 @@ services:
       prometheus-port: "27017"
 
   comment:
-    image: redis:alpine  # Рабочий образ вместо ghcr.io/codeby-devops/comment:monitoring
+    image: redis:alpine 
     networks:
       - reddit
     deploy:
@@ -43,7 +42,6 @@ services:
       prometheus-job: "comment"
       prometheus-port: "6379"
 
-  # Monitoring services (остаются без изменений)
   prometheus:
     image: prom/prometheus:v2.47.0
     ports:

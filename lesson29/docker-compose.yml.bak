@@ -1,8 +1,7 @@
 version: '3.8'
 
 services:
-  # Reddit App services
-  ui:
+   ui:
     image: ghcr.io/codeby-devops/ui:monitoring
     ports:
       - 9292:9292
