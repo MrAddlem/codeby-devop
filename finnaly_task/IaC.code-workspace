@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "includes"
+		},
+		{
+			"path": "ansible"
+		},
+		{
+			"path": "infra"
+		},
+		{
+			"path": "pre-built"
+		}
+	],
+	"settings": {
+	}
+}
