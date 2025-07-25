@@ -1,0 +1,12 @@
+---
+skip_list:
+  - fqcn-builtins
+  - fqcn[keyword]
+  - galaxy[no-changelog]
+  - galaxy[no-runtime]
+  - galaxy[version-incorrect]
+  - no-changed-when
+  - var-spacing
+  - yaml
+warn_list:
+  - name[casing]

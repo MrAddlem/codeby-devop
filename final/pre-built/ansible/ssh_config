@@ -1,0 +1,8 @@
+# SSH config
+Host *
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  ControlMaster yes
+  ControlPersist 5m
+  HostKeyAlgorithms +ssh-rsa
+  IdentityFile ~/.ssh/id_ansible

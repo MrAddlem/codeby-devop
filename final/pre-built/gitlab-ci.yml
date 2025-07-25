@@ -1,0 +1,92 @@
+---
+stages:
+  - lint_docker
+  - store
+  - build
+
+variables:
+  ANSIBLE_VERSION: "2.16"
+  TERRAFORM_VERSION: "1.9.6"
+  PACKER_VERSION: "1.12.0"
+  LINT_IMAGE_VERSION: "1"
+  DEBIAN_IMAGE_VERSION: "bookworm-slim"
+
+# workflow:
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "master"
+#     - if: $CI_MERGE_REQUEST_ID
+
+default: #default elements for all jobs in project
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+    - echo "CI_REGISTRY[$CI_REGISTRY] CI_REGISTRY_IMAGE[$CI_REGISTRY_IMAGE]"
+  tags: [testing-app-01]
+
+docker:lint:public:
+  allow_failure: true
+  before_script: []
+  image: hadolint/hadolint:v2.11.0-alpine
+  script:
+    - find -name Dockerfile -print -exec hadolint '{}' +
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - "**/Dockerfile"
+  stage: lint_docker
+  tags: [docker-testing-app-01]
+
+store:debian:
+  script:
+    - image_name=${CI_REGISTRY_IMAGE}/debian:$DEBIAN_IMAGE_VERSION
+    - docker pull debian:$DEBIAN_IMAGE_VERSION
+    - docker tag debian:$DEBIAN_IMAGE_VERSION $image_name
+    - docker push $image_name
+  stage: store
+
+.build:
+  script:
+    - image_name=${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:$IMAGE_VERSION
+    - docker build -t $image_name $IMAGE_NAME
+        --build-arg=ANSIBLE_COLLECTIONS_TOKEN=$ANSIBLE_COLLECTIONS_TOKEN
+        --build-arg=DEBIAN_IMAGE_VERSION=$DEBIAN_IMAGE_VERSION
+        --build-arg=TERRAFORM_VERSION=$TERRAFORM_VERSION
+        --build-arg=PACKER_VERSION=$PACKER_VERSION
+        --build-arg=ANSIBLE_VERSION=$ANSIBLE_VERSION
+        --build-arg=CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE
+        --build-arg CACHE_BUSTER=$(date +%s)
+    - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN
+    - docker push $image_name
+  stage: build
+
+build:lint:
+  extends: .build
+  variables:
+    IMAGE_NAME: lint
+    IMAGE_VERSION: $LINT_IMAGE_VERSION
+
+build:ansible:
+  extends: .build
+  variables:
+    IMAGE_NAME: ansible
+    IMAGE_VERSION: $ANSIBLE_VERSION
+
+build:packer:
+  extends: .build
+  variables:
+    IMAGE_NAME: packer
+    IMAGE_VERSION: $PACKER_VERSION
+
+build:terraform:
+  extends: .build
+  variables:
+    IMAGE_NAME: terraform
+    IMAGE_VERSION: $TERRAFORM_VERSION
+
+build:packer_proxmox_template:
+  stage: build
+  image: "baltig.ksb.local:4567/IaC/pre-built/packer:1.12.0"
+  before_script: []
+  script:
+    - echo "Running default packer build via entrypoint.sh"
+  tags: [docker-testing-app-01]
+  when: manual

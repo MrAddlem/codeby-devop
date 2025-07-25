@@ -1,0 +1,4 @@
+pyvmomi
+passlib
+jmespath
+ansible-lint
