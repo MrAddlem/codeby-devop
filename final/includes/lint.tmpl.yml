@@ -1,0 +1,55 @@
+---
+# file: ansible_lint.tmpl.yml
+
+.linter_image:
+  image: $LINT_IMAGE
+  tags: [$RUNNER_TAG]
+  stage: lint
+
+yamllint:
+  extends: .linter_image
+  script:
+    - yamllint -f colored -c /etc/yamllint.yml .
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - "**/*.yml"
+          - "**/*.yaml"
+      - if: $CI_PIPELINE_SOURCE == "web"
+        when: manual
+        allow_failure: true
+
+ansible-lint:
+  extends: .linter_image
+  before_script:
+    - echo $VAULT_PASS > $ANSIBLE_VAULT_PASSWORD_FILE
+  allow_failure: false
+  script:
+    - python --version
+    - ansible-lint --version
+    - ansible-galaxy collection list && ansible-galaxy role list
+    - ansible-lint --offline --force-color -c /etc/ansible-lint.yml --project-dir `pwd`
+  image: baltig.ksb.local:4567/iac/pre-built/ansible:2.16
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - host_vars/**/*
+          - group_vars/**/*
+          - playbooks/**/*
+          - inventory.yml
+      - if: $CI_PIPELINE_SOURCE == "web"
+        when: manual
+        allow_failure: true
+
+tflint:
+  allow_failure: false
+  extends: .linter_image
+  script:
+    - tflint
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - terraform/**/*
+      - if: $CI_PIPELINE_SOURCE == "web"
+        when: manual
+        allow_failure: true

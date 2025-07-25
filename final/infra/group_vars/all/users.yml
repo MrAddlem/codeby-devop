@@ -1,0 +1,16 @@
+---
+all_users:
+  - name: svetlov.an
+    state: present
+    remove: true
+    groups:
+      - wheel
+    sudo_options: "ALL=(ALL) ALL"
+    expires: -1
+    password_validity_days: 9999
+    # yamllint disable-line rule:line-length
+    password: "$6$fXtaOxyG6tSzd.33$uznoOEnlL0BA6Q2Y4NrljgpNR9s0jZhmPk5xUh3pwVMiSFAN0XUJQwojxbNnL4OMfZl4BgXebR5J81XPo/xrQ0"
+    authorized_keys:
+      # yamllint disable-line rule:line-length
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIaI7ib4hT5SxXGaSGBm85R5ftEwYnbbVhXvKHyH9YIv Svetlov.an@ksb-soft.ru"
+    update_password: always

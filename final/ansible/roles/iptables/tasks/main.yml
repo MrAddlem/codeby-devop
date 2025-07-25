@@ -1,0 +1,28 @@
+---
+- name: Copy systemd iptables-restore.service to server
+  ansible.builtin.copy:
+    src: templates/iptables-restore.service
+    dest: /etc/systemd/system
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Check if Docker is installed
+  ansible.builtin.stat:
+    path: /usr/bin/docker
+  register: docker_installed
+
+- name: Get interface name
+  ansible.builtin.set_fact:
+    interface_name: "{{ ansible_default_ipv4.interface }}"
+
+- name: Generate iptables configuration file
+  ansible.builtin.template:
+    src: templates/iptables.j2
+    dest: /etc/sysconfig/iptables
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart iptables
+    - Restart docker

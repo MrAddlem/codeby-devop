@@ -1,0 +1,23 @@
+---
+# Enable repo setup
+docker_add_repo: true
+
+# Docker repo URL.
+docker_repo_url: https://download.docker.com/linux
+
+# Used only for RedHat/CentOS/Fedora.
+docker_yum_repo_url: "{{ docker_repo_url }}/centos/docker-ce.repo"
+docker_yum_gpg_key: "{{ docker_repo_url }}/centos/gpg"
+
+# A list of users who will be added to the docker group.
+docker_users:
+  - ansible
+
+# Docker daemon options as a dict
+docker_daemon_options: {}
+
+# Add cron job for Docker cleanup
+docker_cleanup_cron:
+  hour: "3"
+  minute: "0"
+  hours_old: 48

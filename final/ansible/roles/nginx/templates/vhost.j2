@@ -1,0 +1,66 @@
+server {
+    listen {{ item.listen }};
+    server_name {{ item.server_name }};
+    
+{% if item.extra_options is defined %}
+    {{ item.extra_options | indent(4, False) }}
+{% endif %}
+
+{% set first_server_name = item.server_name.split(' ')[0] %}
+{% if item.get('access_log', 'True') != 'False' %}
+    access_log /var/log/nginx/{{ first_server_name }}.access.log;
+{% endif %}
+{% if item.get('error_log', 'True') != 'False' %}
+    error_log /var/log/nginx/{{ first_server_name }}.error.log;
+{% endif %}
+
+{% if item.listen == '443 ssl' %}    
+    ssl_certificate {{ ssl_certificate }};
+    ssl_certificate_key {{ ssl_certificate_key }};
+{% if ssl_dhparam is defined %}      
+    ssl_dhparam {{ ssl_dhparam }};
+{% endif %}
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    set_real_ip_from {{ real_ip_from }};
+    real_ip_header X-Forwarded-For;
+{% endif %}
+
+{% if item.proxy_server is defined %}
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $server_name;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    
+    client_max_body_size 100m;
+    proxy_connect_timeout 300s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    send_timeout 300s;
+
+    proxy_buffering on;
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+    proxy_busy_buffers_size 256k;
+
+    location / {
+        proxy_pass http://{{ item.proxy_server }};
+    }
+{% endif %} 
+
+{% if item.location is defined %}
+{% for location in item.location %}
+    location {{ location.name }} {
+        {{ location.location_options | indent(8, False) }}
+    }    
+{% endfor %}
+{% endif %} 
+}
+
+{% if item.extra_server is defined %}
+server  {
+    {{ item.extra_server | indent(4, False) }}
+}
+{% endif %}

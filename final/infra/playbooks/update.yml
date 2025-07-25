@@ -1,0 +1,40 @@
+---
+
+- name: Update system
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Ensure DNF is not locked
+      ansible.builtin.shell: |
+        until ! pgrep -x dnf >/dev/null; do sleep 1; done
+      changed_when: false
+
+    - name: Clean up DNF cache
+      ansible.builtin.dnf:
+        update_cache: true
+        autoremove: true
+
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest  # noqa: package-latest
+        update_cache: true
+      register: dnf_result
+      changed_when: dnf_result.changed
+
+    - name: Check if reboot is required
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_check
+      failed_when: false
+      changed_when: false
+      ignore_errors: true
+
+    - name: Reboot system if needed
+      ansible.builtin.reboot:
+        msg: "Rebooting after system upgrade"
+        reboot_timeout: 600
+        pre_reboot_delay: 10
+        post_reboot_delay: 30
+      when: reboot_check.rc == 1
+  tags: update_system

@@ -1,0 +1,43 @@
+---
+#docker:
+#  children:
+#    app:
+#      hosts:
+#        ksb-develop:
+#          ansible_host: 10.38.26.110
+#        ksb-prod-app:
+#          ansible_host: 10.38.26.101
+#      children:
+#        app_backup:
+#          hosts:
+#            ksb-prod-app:
+#              ansible_host: 10.38.26.101
+
+
+web:
+  hosts:
+    ksb-prod-app:
+      ansible_host: 10.38.26.101
+
+
+db:
+  hosts:
+    ksb-prod-db:
+      ansible_host: 10.38.26.102
+
+
+rmq:
+  hosts:
+    ksb-prod-rmq:
+      ansible_host: 10.38.26.103
+
+
+#metrics:
+#  hosts:
+#    grafana16:
+#      ansible_host: 10.38.16.20
+
+#backups:
+#  hosts:
+#    srv-backups-01:
+#      ansible_host: 172.17.0.107

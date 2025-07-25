@@ -1,0 +1,67 @@
+---
+
+- name: assert | Test gitlab_runners
+  ansible.builtin.assert:
+    that:
+      - gitlab_runners is defined
+      - gitlab_runners is iterable
+      - gitlab_runners | length > 0
+    quiet: true
+  when: gitlab_runners is defined
+
+- name: assert | Test each gitlab_runner
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name is string
+      - item.name is not none
+      - item.url is defined
+      - item.url is string
+      - item.url is not none
+      - item.executor is defined
+      - item.executor is string
+      - item.executor in [ "ssh", "shell", "parallels", "virtualbox", "docker", "docker_machine", "kubernetes", "custom" ]
+    quiet: true
+  loop: "{{ gitlab_runners }}"
+  when:
+    - gitlab_runners is defined
+    - gitlab_runners | length > 0
+
+- name: assert | Test each registration_token
+  ansible.builtin.assert:
+    that:
+      - item.registration_token is defined
+      - item.registration_token is string
+      - item.registration_token is not none
+    quiet: true
+  loop: "{{ gitlab_runners }}"
+  when:
+    - gitlab_runners is defined
+    - gitlab_runners | length > 0
+  no_log: true
+
+- name: assert | Test gitlab_runner_docker_image when executor is docker
+  ansible.builtin.assert:
+    that:
+      - item.docker_image is defined
+      - item.docker_image is string
+      - item.docker_image is not none
+    quiet: true
+  when: item.executor == "docker"
+  loop: "{{ gitlab_runners }}"
+
+- name: assert | Test gitlab_runner_version
+  ansible.builtin.assert:
+    that:
+      - gitlab_runner_version is defined
+      - gitlab_runner_version is string
+      - gitlab_runner_version is not none
+    quiet: true
+
+- name: assert | Test gitlab_runner_concurrency
+  ansible.builtin.assert:
+    that:
+      - gitlab_runner_concurrency is defined
+      - gitlab_runner_concurrency is number
+      - gitlab_runner_concurrency >= 0
+    quiet: true

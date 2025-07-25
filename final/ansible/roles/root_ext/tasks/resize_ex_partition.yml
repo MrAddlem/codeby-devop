@@ -1,0 +1,19 @@
+---
+- name: Extend GPT table to use all available space
+  ansible.builtin.command: sgdisk -e "{{ root_ext_dev }}"
+  register: command_result
+  when: free_size | int > 100000
+  changed_when: command_result.rc == 0
+
+- name: Extend an existing partition to fill all available space
+  community.general.parted:
+    device: "{{ root_ext_dev }}"
+    number: "{{ part_num | int }}"
+    part_end: "100%"
+    label: gpt
+    resize: true
+    state: present
+  notify:
+    - Resize existing PV
+    - Extend LV
+  when: free_size | int > 100000

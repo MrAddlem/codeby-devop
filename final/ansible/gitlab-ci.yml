@@ -1,0 +1,12 @@
+---
+
+stages:
+  - lint
+
+include:
+  - project: iac/includes
+    ref: main
+    file: /lint.tmpl.yml
+  - project: iac/includes
+    file: /vars.tmpl.yml
+    ref: main

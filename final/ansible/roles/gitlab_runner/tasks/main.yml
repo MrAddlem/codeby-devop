@@ -1,0 +1,86 @@
+---
+# tasks file for gitlab_runner
+
+- name: Import assert.yml
+  ansible.builtin.import_tasks:
+    file: assert.yml
+  run_once: true
+  delegate_to: localhost
+
+- name: Get repository installation script
+  ansible.builtin.get_url:
+    url: "{{ gitlab_runner_script_url }}"
+    dest: /tmp/gitlab-runner-script.sh
+    mode: "750"
+
+- name: Run repository installation script
+  ansible.builtin.command:
+    cmd: /tmp/gitlab-runner-script.sh
+    creates: "{{ gitlab_runner_repository_file }}"
+
+- name: Install gitlab-runner
+  ansible.builtin.package:
+    name: "{{ gitlab_runner_package }}"
+    state: present
+
+- name: Register runners
+  when: gitlab_runners is defined
+  block:
+    - name: Get registration status
+      ansible.builtin.command:
+        cmd: gitlab-runner list
+      register: gitlab_runner_get_registration_status
+      changed_when: false
+
+    - name: Register gitlab runners
+      ansible.builtin.command:
+        cmd: >
+          gitlab-runner register --non-interactive
+          --name "{{ item.name }}"
+          --url "{{ item.url }}"
+          --token "{{ item.registration_token }}"
+          --executor "{{ item.executor }}"
+          {% if item.executor == "docker" and item.docker_image is defined %}
+          --docker-image "{{ item.docker_image }}"
+          {% endif %}
+          {% if item.executor == "docker" and item.docker_privileged | default(false) %}
+          --docker-privileged
+          --docker-volumes /var/run/docker.sock:/var/run/docker.sock
+          {% endif %}
+          {% if item.executor == "docker" and item.docker_network_mode is defined %}
+          --docker-network-mode "{{ item.docker_network_mode }}"
+          {% endif %}
+          {% if item.request_concurrency is defined %}
+          --request-concurrency "{{ item.request_concurrency }}"
+          {% endif %}
+      loop: "{{ gitlab_runners }}"
+      when:
+        - item.name not in gitlab_runner_get_registration_status.stderr
+      changed_when: true
+      no_log: true
+
+- name: Set concurrency in config.toml
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^concurrent = '
+    line: "concurrent = {{ gitlab_runner_concurrency }}"
+    state: present
+  notify:
+    - Restart gitlab-runner
+
+- name: Set Metrics HTTP Server in config.toml
+  ansible.builtin.blockinfile:
+    path: /etc/gitlab-runner/config.toml
+    block: |
+      listen_address = "{{ gitlab_runner_metrics_listen_address }}"
+    insertbefore: BOF
+    create: true
+  when: gitlab_runner_metrics_listen_address is defined
+  notify:
+    - Restart gitlab-runner
+
+- name: Start and enable gitlab-runner
+  ansible.builtin.service:
+    name: "{{ gitlab_runner_service }}"
+    state: started
+    enabled: true

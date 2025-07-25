@@ -1,0 +1,10 @@
+---
+- name: Make swap file
+  ansible.builtin.command: mkswap {{ swap_file_path }}
+  register: mkswap_result
+  changed_when: mkswap_result.rc == 0
+
+- name: Run swapon
+  ansible.builtin.command: swapon {{ swap_file_path }}
+  register: swapon_result
+  changed_when: swapon_result.rc == 0

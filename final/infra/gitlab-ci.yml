@@ -1,0 +1,26 @@
+---
+variables:
+  ANSIBLE_DEBUG: "${ANSIBLE_DEBUG}"
+
+include:
+  - project: iac/includes
+    file: /stages_wf.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /vars.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /lint.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /terraform.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /configure.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /adhoc.tmpl.yml
+    ref: main
+  - project: iac/includes
+    file: /backup.tmpl.yml
+    ref: main

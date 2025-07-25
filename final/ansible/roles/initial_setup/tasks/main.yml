@@ -1,0 +1,74 @@
+---
+
+- name: Ensure RTC is set to UTC
+  become: true
+  block:
+    - name: Check if RTC is set to local time
+      ansible.builtin.command: timedatectl show --property=LocalRTC --value
+      register: rtc_status
+      changed_when: false
+
+    - name: Set RTC to UTC if necessary
+      ansible.builtin.command: timedatectl set-local-rtc 0
+      when: rtc_status.stdout == "yes"
+
+- name: Add custom certificates
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "/etc/ssl/certs/{{ item.name }}.crt"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ initial_setup_certificates }}"
+  no_log: true
+
+- name: Manage node_exporter cert directories and certificates
+  block:
+    - name: Create node_exporter cert dir
+      ansible.builtin.file:
+        path: "/etc/node_exporter"
+        state: directory
+        owner: root
+        group: root
+        mode: u+rwX,g+rwX,o=rX
+
+    - name: Ensure private key is present
+      community.crypto.openssl_privatekey:
+        path: /etc/node_exporter/tls.key
+        size: '2048'
+        mode: '0644'
+        type: RSA
+
+    - name: Ensure self-signed cert is present
+      community.crypto.x509_certificate:
+        path: /etc/node_exporter/tls.cert
+        privatekey_path: /etc/node_exporter/tls.key
+        provider: selfsigned
+
+- name: Install packages
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ initial_setup_packages }}"
+
+- name: "Update hostname"
+  ansible.builtin.hostname:
+    name: "{{ initial_setup_hostname }}"
+
+- name: Update /etc/hosts with dynamic inventory
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item].ansible_host }} {{ item }}"
+    state: present
+  loop: "{{ groups['all'] }}"
+
+- name: Manage IPv6 state
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: true
+  loop:
+    # yamllint disable-line rule:line-length
+    - {name: 'net.ipv6.conf.all.disable_ipv6', value: "{{ '1' if initial_setup_disable_ipv6 else '0' }}"}
+    # yamllint disable-line rule:line-length
+    - {name: 'net.ipv6.conf.default.disable_ipv6', value: "{{ '1' if initial_setup_disable_ipv6 else '0' }}"}

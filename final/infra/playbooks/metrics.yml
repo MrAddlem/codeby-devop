@@ -1,0 +1,32 @@
+---
+- name: Configure and Install Services on srv-metrics-01
+  hosts: srv-metrics-01
+  become: true
+  roles:
+    - prometheus.prometheus.prometheus
+    - prometheus.prometheus.alertmanager
+    - grafana.grafana.grafana
+
+- name: Install Node Exporter on all servers
+  hosts: all
+  become: true
+  roles:
+    - prometheus.prometheus.node_exporter
+
+- name: Install cAdvisor on docker servers
+  hosts: docker
+  become: true
+  roles:
+    - prometheus.prometheus.cadvisor
+
+- name: Install Nginx Exporter on web servers
+  hosts: web
+  become: true
+  roles:
+    - prometheus.prometheus.nginx_exporter
+
+- name: Install Potgres Exporter on db servers
+  hosts: db
+  become: true
+  roles:
+    - prometheus.prometheus.postgres_exporter

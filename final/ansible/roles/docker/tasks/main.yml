@@ -1,0 +1,73 @@
+---
+- name: Add Docker GPG key.
+  ansible.builtin.rpm_key:
+    key: "{{ docker_yum_gpg_key }}"
+    state: present
+
+- name: Add Docker repository.
+  ansible.builtin.get_url:
+    url: "{{ docker_yum_repo_url }}"
+    dest: '/etc/yum.repos.d/docker-ce.repo'
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install Docker packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+
+- name: Configure Docker daemon options.
+  ansible.builtin.copy:
+    content: "{{ docker_daemon_options | to_nice_json }}"
+    dest: /etc/docker/daemon.json
+    mode: '0644'
+  when: docker_daemon_options.keys() | length > 0
+  notify: Restart docker
+
+- name: Ensure Docker is started and enabled at boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Get docker group info using getent.
+  ansible.builtin.getent:
+    database: group
+    key: docker
+    split: ':'
+  when: docker_users | length > 0
+
+- name: Check if there are any users to add to the docker group.
+  ansible.builtin.set_fact:
+    at_least_one_user_to_modify: true
+  when:
+    - docker_users | length > 0
+    - item not in ansible_facts.getent_group["docker"][2]
+  with_items: "{{ docker_users }}"
+
+- name: Ensure docker users are added to the docker group.
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  with_items: "{{ docker_users }}"
+  when: at_least_one_user_to_modify is defined
+
+- name: Add cron job for Docker cleanup
+  ansible.builtin.cron:
+    name: "Docker system prune"
+    minute: "{{ docker_cleanup_cron.minute }}"
+    hour: "{{ docker_cleanup_cron.hour }}"
+    user: root
+    job: >
+      /usr/bin/docker system prune -af
+      --filter "until={{ docker_cleanup_cron.hours_old }}h"
+      > /var/log/docker-cleanup.log 2>&1
+  when: docker_cleanup_cron is defined

@@ -1,0 +1,12 @@
+---
+- name: Restart iptables
+  ansible.builtin.service:
+    name: iptables-restore.service
+    enabled: true
+    state: restarted
+
+- name: Restart docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+  when: docker_installed.stat.exists

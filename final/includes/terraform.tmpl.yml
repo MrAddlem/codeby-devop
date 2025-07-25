@@ -1,0 +1,95 @@
+---
+.terraform_image:
+  image: $TERRAFORM_IMAGE
+  tags: [$RUNNER_TAG]
+  before_script:
+    - export TF_VAR_proxmox_endpoint=$PROXMOX_ENDPOINT
+    - export TF_VAR_proxmox_username=$PROXMOX_USERNAME
+    - export TF_VAR_proxmox_password=$PROXMOX_PASSWORD
+    - export GITLAB_ACCESS_TOKEN=$TOKEN
+    - export USERNAME=$USERNAME
+    - terraform --version
+    - cd ${TF_DIR}
+    - |
+      terraform init \
+          -backend-config="address=${ADDRESS}" \
+          -backend-config="lock_address=${ADDRESS}/lock" \
+          -backend-config="unlock_address=${ADDRESS}/lock" \
+          -backend-config="username=$USERNAME" \
+          -backend-config="password=$GITLAB_ACCESS_TOKEN" \
+          -backend-config="lock_method=POST" \
+          -backend-config="unlock_method=DELETE" \
+          -backend-config="retry_wait_min=5"
+
+fmt-check:
+  extends: .terraform_image
+  before_script: []
+  stage: lint
+  script:
+    - terraform fmt -check
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - terraform/**/*
+
+validate:
+  extends: .terraform_image
+  stage: test
+  script:
+    - terraform validate
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - terraform/**/*
+
+plan:
+  extends: .terraform_image
+  stage: plan
+  script:
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - terraform/tfplan
+  when: manual
+
+apply:
+  extends: .terraform_image
+  stage: apply
+  script:
+    - terraform apply -auto-approve tfplan
+  when: manual
+
+show_vm_ips:
+  extends: .terraform_image
+  stage: apply
+  script:
+    - terraform refresh
+    - |
+      terraform show -json | jq -r '
+        .values.root_module.child_modules[]
+        | select(.resources[].type == "proxmox_virtual_environment_vm")
+        | .resources[]
+        | select(.type == "proxmox_virtual_environment_vm")
+        | .values.name as $vm_name
+        | .values.ipv4_addresses[][]
+        | select(. != "127.0.0.1")
+        | "\($vm_name) - \(. )"
+      '
+  when: manual
+
+plan_destroy:
+  extends: .terraform_image
+  stage: destroy
+  script:
+    - terraform plan --destroy
+  when: manual
+
+x_destroy:
+  extends: .terraform_image
+  stage: destroy
+  script:
+    - terraform destroy -auto-approve
+  needs: [ "plan_destroy" ]
+  rules:
+    - if: $TFDESTROY == "TFDESTROY"
+  when: manual
