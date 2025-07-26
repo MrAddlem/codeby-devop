@@ -1,0 +1,113 @@
+---
+- name: "Setup.yml"
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Colorize root shell prompt
+      lineinfile:
+        path: /root/.bashrc
+        # yamllint disable-line rule:line-length
+        line: 'export PS1="\[\033[38;5;11m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\]@\h:\[$(tput sgr0)\]\[\033[38;5;6m\][\w]:\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]"'
+        state: present
+
+    - name: Install epel repo (Rocky)
+      dnf:
+        name: "epel-release"
+        state: latest
+      when: ansible_distribution == "Rocky"
+
+    - name: Upgrade all packages (Rocky)
+      dnf:
+        name: "*"
+        state: latest
+      when: ansible_distribution == "Rocky"
+
+    - name: Install packages (Rocky)
+      dnf:
+        name:
+          - yum-utils
+          - bash-completion
+          - curl
+          - git
+          - rsync
+          - screen
+          - tcpdump
+          - wget
+          - mc
+          - nano
+          - htop
+          - traceroute
+          - strace
+          - ncdu
+          - fio
+          - net-tools
+          - bind-utils
+          - fail2ban
+          - systemd-timesyncd
+          - cloud-init
+          - qemu-guest-agent
+        state: latest
+      when: ansible_distribution == "Rocky"
+
+    - name: Enable and start qemu-guest-agent service
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        enabled: true
+        state: started
+
+    - name: Add ssh key
+      authorized_key:
+        user: ansible
+        # yamllint disable-line rule:line-length
+        key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXJDnYtZx2Ik+VH+zgJbrnRUdzIAasSQZN8o6eFZbtP user@debian
+        state: present
+      when: ansible_distribution == "Rocky"
+
+    - name: Stop and disable firewalld.
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+
+    - name: ansible user has no password
+      user:
+        name: ansible
+        password: '*'
+
+    - name: disable SSH PasswordAuthentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+
+    - name: Set SELinux to disabled in config file
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=disabled'
+        state: present
+
+    - name: Configure cloud-init.cfg
+      copy:
+        dest: /etc/cloud/cloud.cfg
+        content: |
+          #cloud-config
+
+          ssh_deletekeys: true
+          ssh_genkeytypes: ['rsa', 'ecdsa', 'ed25519']
+          cloud_init_modules:
+            - ssh
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Add psi=1 to kernel parameters
+      command: grubby --update-kernel=ALL --args="psi=1"
+      register: grubby_result
+      changed_when: "'No update needed' not in grubby_result.stdout"
+
+    - name: Update GRUB configuration
+      command: grub2-mkconfig -o /boot/grub2/grub.cfg
+      when: grubby_result is changed

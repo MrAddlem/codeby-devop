@@ -1,0 +1,67 @@
+---
+- name: Copy vhosts configuration
+  ansible.builtin.template:
+    src: vhost.j2
+    # yamllint disable-line rule:line-length
+    dest: "{{ nginx_vhost_path }}/{{ item.server_name | split(' ') | first }}.conf"
+    owner: root
+    group: root
+    mode: '0644'
+  with_items: "{{ nginx_vhosts }}"
+  notify:
+    - Reload nginx
+
+- name: Manage SSL directories and certificates
+  when: generate_ssl is defined and generate_ssl | bool
+  block:
+    - name: Ensure SSL directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /etc/ssl/certs
+        - /etc/ssl/private
+
+    - name: Ensure private key is present
+      community.crypto.openssl_privatekey:
+        path: /etc/ssl/private/nginx.key
+        size: '2048'
+        mode: '0600'
+        type: RSA
+
+    - name: Ensure self-signed cert is present
+      community.crypto.x509_certificate:
+        path: /etc/ssl/certs/nginx.crt
+        privatekey_path: /etc/ssl/private/nginx.key
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: '0644'
+
+- name: Get expected filenames from nginx_vhosts
+  ansible.builtin.set_fact:
+    expected_files: "{{ nginx_vhosts | map(attribute='server_name')
+      | map('split', ' ')
+      | map('first')
+      | map('regex_replace', '^', nginx_vhost_path + '/')
+      | map('regex_replace', '$', '.conf') | list }}"
+
+- name: Find all current config files
+  ansible.builtin.find:
+    paths: "{{ nginx_vhost_path }}"
+    patterns: "*.conf"
+  register: current_configs
+
+- name: Set files to delete (those not in expected_files)
+  ansible.builtin.set_fact:
+    files_to_delete: "{{ current_configs.files
+      | map(attribute='path')
+      | difference(expected_files) | list }}"
+
+- name: Remove unwanted configs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ files_to_delete }}"
+  when: files_to_delete | length > 0
+  notify: Reload nginx

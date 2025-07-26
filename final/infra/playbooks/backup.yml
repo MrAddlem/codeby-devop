@@ -1,0 +1,192 @@
+---
+- name: Add backup user to backup servers
+  hosts: backups
+  become: true
+  vars:
+    users:
+      - name: backup
+        state: present
+        remove: true
+        manage_ssh_key: true
+        copy_private_key: true
+  roles:
+    - users
+  tags: init
+
+- name: Add backup users to app_backup servers
+  hosts: app_backup
+  become: true
+  vars:
+    users:
+      - name: backup
+        state: present
+        remove: true
+        sudo_options:
+          - "ALL=(root) NOPASSWD: /usr/bin/rsync"
+          - "ALL=(postgres) NOPASSWD: /usr/bin/pg_dumpall"
+        manage_ssh_key: true
+        copy_public_key: true
+  roles:
+    - users
+  tags: init
+
+- name: Add SSH host keys to known_hosts
+  hosts: backups
+  gather_facts: false
+  vars:
+    backup_user: backup
+    known_hosts_path: "/home/{{ backup_user }}/.ssh/known_hosts"
+    ssh_dir: "/home/{{ backup_user }}/.ssh"
+  tasks:
+    - name: Add SSH host keys to known_hosts by hostname
+      ansible.builtin.known_hosts:
+        name: "{{ item }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -T 5 ' + item) }}"
+        path: "{{ known_hosts_path }}"
+        state: present
+      loop: "{{ groups['app_backup'] }}"
+      become: true
+      become_user: "{{ backup_user }}"
+  tags: init
+
+- name: Deploy scripts to backup server
+  hosts: backups
+  become: true
+  tasks:
+    - name: Copy backup script
+      ansible.builtin.copy:
+        src: scripts/backup.sh
+        dest: /usr/local/bin/backup-server
+        mode: '0755'
+    - name: Copy restore script
+      ansible.builtin.copy:
+        src: scripts/restore.sh
+        dest: /usr/local/bin/restore-server
+        mode: '0755'
+    - name: Remove existing backup cron job (if any)
+      ansible.builtin.cron:
+        name: "Run automated backups every 3 hours"
+        user: backup
+        cron_file: backup
+        state: absent
+    - name: Set ACL for backup on /var/lib/node_exporter/
+      ansible.posix.acl:
+        path: /var/lib/node_exporter/
+        entity: backup
+        etype: user
+        permissions: rwx
+        state: present
+  tags: init
+
+- name: Schedule backup script in cron
+  hosts: backups
+  become: true
+  vars:
+    source_servers: "{{ groups['app_backup'] | join(' ') }}"
+  tasks:
+    - name: Schedule backup script in cron
+      ansible.builtin.cron:
+        name: "Run automated backups every 3 hours"
+        minute: "0"
+        hour: "*/3"  # Каждые 3 часа (0, 3, 6, 9, 12, 15, 18, 21)
+        job: "/usr/local/bin/backup-server {{ source_servers }}"
+        user: backup
+        cron_file: backup
+  tags: schedule_backup
+
+- name: Start backup
+  hosts: backups
+  become: true
+  vars:
+    backup_servers: >-
+      {% if BACKUP_SERVERS == 'all' %}
+        {{ groups['app_backup'] | join(' ') }}
+      {% else %}
+        {{ BACKUP_SERVERS }}
+      {% endif %}
+  tasks:
+    - name: Define log file path
+      set_fact:
+        log_file_path: "/home/backup/backups/logs/backup_ansible_{{ lookup('pipe', 'date +%F_%H-%M') }}.log"
+
+    - name: Start backup script
+      ansible.builtin.shell: "/usr/local/bin/backup-server {{ backup_servers }}"
+      args:
+        executable: /bin/bash
+      environment:
+        LOG_FILE: "{{ log_file_path }}"
+      become: true
+      become_user: "backup"
+
+    - name: Register logs
+      ansible.builtin.command: cat "{{ log_file_path }}"
+      register: log_content
+      changed_when: false
+    - name: Output logs
+      ansible.builtin.debug:
+        var: log_content.stdout_lines
+  tags: backup
+
+- name: Restore backup
+  hosts: backups
+  become: true
+  vars:
+    restore_servers: >-
+      {% if RESTORE_SERVERS == 'all' %}
+        {{ groups['app_backup'] | join(' ') }}
+      {% else %}
+        {{ RESTORE_SERVERS }}
+      {% endif %}
+  tasks:
+    - name: Run restore script
+      block:
+        - name: Allow psql for backup user (temporary, for restore)
+          ansible.builtin.lineinfile:
+            path: /etc/sudoers.d/backup
+            line: 'backup ALL=(postgres) NOPASSWD: /usr/bin/psql'
+            validate: 'visudo -cf %s'
+          delegate_to: "{{ item }}"
+          loop: "{{ restore_servers.split() }}"
+
+        - name: Define log file path
+          set_fact:
+            log_file_path: "/home/backup/backups/logs/restore_ansible_{{ lookup('pipe', 'date +%F_%H-%M') }}.log"
+
+        - name: Start restore script
+          ansible.builtin.shell: "/usr/local/bin/restore-server {{ restore_servers }}"
+          args:
+            executable: /bin/bash
+          environment:
+            LOG_FILE: "{{ log_file_path }}"
+          become: true
+          become_user: "backup"
+          register: restore_result
+          failed_when: false
+
+      always:
+        - name: Remove temporary psql permission
+          ansible.builtin.lineinfile:
+            path: /etc/sudoers.d/backup
+            state: absent
+            regexp: '^backup ALL=\(postgres\) NOPASSWD: /usr/bin/psql$'
+            validate: 'visudo -cf %s'
+          delegate_to: "{{ item }}"
+          loop: "{{ restore_servers.split() }}"
+
+        - name: Restore owner of /opt to root
+          file:
+            path: /opt
+            owner: root
+            group: root
+            recurse: false
+          delegate_to: "{{ item }}"
+          loop: "{{ restore_servers.split() }}"
+
+    - name: Register logs
+      ansible.builtin.command: cat "{{ log_file_path }}"
+      register: log_content
+      changed_when: false
+    - name: Output logs
+      ansible.builtin.debug:
+        var: log_content.stdout_lines
+  tags: restore

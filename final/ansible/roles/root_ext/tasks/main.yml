@@ -1,0 +1,26 @@
+---
+- name: Get Disk Info
+  community.general.parted:
+    device: "{{ root_ext_dev }}"
+    unit: KiB
+  register: sda_info
+
+- name: Get Values
+  ansible.builtin.set_fact:
+    disk_size: "{{ sda_info.disk.size }}"
+    part_end: "{{ sda_info.partitions[-1].end }}"
+    part_num: "{{ sda_info.partitions[-1].num }}"
+    next_part_num: "{{ sda_info.partitions[-1].num + 1 }}"
+    free_size: "{{ sda_info.disk.size - sda_info.partitions[-1].end }}"
+
+- name: Print free size
+  ansible.builtin.debug:
+    msg:
+      - "Disk Size: {{ disk_size }}"
+      - "End of Last Partition: {{ part_end }}"
+      - "Part Number: {{ part_num }}"
+      - "Next Part Number: {{ next_part_num }}"
+      - "Free Space: {{ free_size }}"
+
+- name: Resize partition
+  ansible.builtin.include_tasks: resize_ex_partition.yml

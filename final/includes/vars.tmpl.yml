@@ -1,0 +1,30 @@
+---
+variables:
+  ANSIBLE_VAULT_PASSWORD_FILE: .vault_pass
+  ANSIBLE_COLOR_CHANGED: "bright yellow"
+  ANSIBLE_COLOR_DIFF_ADD: "green"
+  ANSIBLE_COLOR_DIFF_REMOVE: "yellow"
+  ANSIBLE_DISPLAY_OK_HOSTS: "false"
+  ANSIBLE_DISPLAY_SKIPPED_HOSTS: "false"
+  ANSIBLE_FORCE_COLOR: "true"
+  ANSIBLE_FORCE_HANDLERS: "true"
+  ANSIBLE_FORKS: "8"
+  ANSIBLE_GATHERING: smart
+  ANSIBLE_HOST_KEY_CHECKING: "false"
+  ANSIBLE_IMAGE_TAG: "7"
+  ANSIBLE_INVENTORY: inventory.yml
+  ANSIBLE_PIPELINING: "true"
+  ANSIBLE_REMOTE_PORT: "22"
+  ANSIBLE_REMOTE_USER: "ansible"
+  ANSIBLE_RETRY_FILES_ENABLED: "false"
+  ANSIBLE_STDOUT_CALLBACK: "yaml"
+  ANSIBLE_TIMEOUT: "30"
+  ANSIBLE_IMAGE: "baltig.ksb.local:4567/iac/pre-built/ansible:2.16"
+  TERRAFORM_IMAGE: "baltig.ksb.local:4567/iac/pre-built/terraform:1.9.6"
+  LINT_IMAGE: "baltig.ksb.local:4567/iac/pre-built/lint:1"
+  TF_DIR: "${CI_PROJECT_DIR}/terraform"
+  STATE_NAME: "${CI_COMMIT_REF_SLUG}"
+  # yamllint disable-line rule:line-length
+  ADDRESS: "https://baltig.ksb.local/api/v4/projects/${CI_PROJECT_ID}/terraform/state/${CI_COMMIT_REF_SLUG}"
+  TF_IN_AUTOMATION: "true"
+  RUNNER_TAG: $RUNNER_TAG

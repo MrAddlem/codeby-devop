@@ -1,0 +1,3 @@
+./infra/group_vars/users.yml
+./infra/host_vars/vault.yml
+./infra/host_vars/certs.yml

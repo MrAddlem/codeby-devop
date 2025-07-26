@@ -1,0 +1,28 @@
+---
+.ansible_image_adhoc:
+  image: $ANSIBLE_IMAGE
+  tags: [$RUNNER_TAG]
+  stage: adhoc
+  before_script:
+    - echo $VAULT_PASS > $ANSIBLE_VAULT_PASSWORD_FILE
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+        changes:
+          - "playbooks/adhoc.yml"
+
+01_dry_run:
+  extends: .ansible_image_adhoc
+  script:
+    - |
+      ansible-playbook playbooks/adhoc.yml --check --diff
+  when: manual
+
+02_play:
+  extends: .ansible_image_adhoc
+  script:
+    - |
+      ansible-playbook playbooks/adhoc.yml
+  when: manual

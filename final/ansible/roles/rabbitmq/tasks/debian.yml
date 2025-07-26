@@ -1,0 +1,60 @@
+---
+- name: debian | Adding Pre-Reqs
+  ansible.builtin.apt:
+    name:
+      - gnupg2
+      - apt-transport-https
+    state: present
+    update_cache: true
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | add RabbitMQ repo GPG Signin Keys
+  ansible.builtin.get_url:
+    url: "{{ rabbitmq_debian_repo_key }}"
+    dest: "/usr/share/keyrings/rabbitmq-server.asc"
+    mode: "0644"
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | adding RabbitMQ repo
+  ansible.builtin.apt_repository:
+    repo: "{{ rabbitmq_debian_repo }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | adding RabbitMQ relang repo public GPG key to the apt repo
+  ansible.builtin.get_url:
+    url: "{{ rabbitmq_debian_erlang_repo_key }}"
+    dest: "/usr/share/keyrings/rabbitmq-erlang.asc"
+    mode: "0644"
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | add Rabbitmq erlang repo
+  ansible.builtin.apt_repository:
+    repo: "{{ rabbitmq_debian_erlang_repo }}"
+    state: present
+  become: true
+  when: rabbitmq_debian_erlang_from_rabbit
+
+- name: debian | installing RabbitMQ server
+  ansible.builtin.apt:
+    name:
+      - rabbitmq-server{{ (rabbitmq_debian_version_defined and rabbitmq_debian_version is defined) | ternary(['=', rabbitmq_debian_version] | join(''), '') }}
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: debian | ensuring that the RabbitMQ service is running
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: started
+    enabled: true
+  become: true

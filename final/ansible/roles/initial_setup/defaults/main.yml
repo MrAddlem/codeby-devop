@@ -1,0 +1,20 @@
+---
+# [packages] List of packages to install
+# Examples:
+# - wget
+# - openssh-server
+initial_setup_packages: []
+
+# [hostname] The hostname to set
+initial_setup_hostname: ""
+
+# yamllint disable-line rule:line-length
+# [disable_ipv6] Boolean to disable or enable ipv6 (default to disable so we can test everywhere)
+initial_setup_disable_ipv6: true
+
+# Add custom certificates
+initial_setup_certificates: []
+#   - name: ksb-dev
+#     content: |
+#       -----BEGIN CERTIFICATE-----
+#       -----END CERTIFICATE-----

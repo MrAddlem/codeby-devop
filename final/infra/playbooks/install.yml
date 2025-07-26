@@ -1,0 +1,66 @@
+---
+- name: Initial setup
+  hosts: all
+  become: true
+  roles:
+    - root_ext
+    - swap
+    - initial_setup
+    - iptables
+  tags: initial_setup
+
+- name: Configure and Install Services on web
+  hosts: web
+  become: true
+  roles:
+    - nginx
+  tags: web
+
+- name: Configure and Install Services on db
+  hosts: db
+  become: true
+  roles:
+    - postgresql
+  tags: db
+
+- name: Configure and Install Services on app
+  hosts: app
+  become: true
+  roles:
+    - docker
+    - iptables
+    - gitlab_runner
+  tags: app
+
+- name: Configure and Install Services on rmq
+  hosts: rmq
+  become: true
+  roles:
+    - rabbitmq
+  tags: rmq
+
+- name: Manage users
+  hosts: all
+  become: true
+  vars:
+    users: "{{ all_users + (host_users | default([])) }}"
+  # pre_tasks:
+  #   - name: Debug merged users list
+  #     debug:
+  #       var: users
+  roles:
+    - users
+  tags: manage_users
+
+- name: Grant user gitlab-runner write access
+  hosts: app
+  become: true
+  tasks:
+    - name: Set ACL for gitlab-runner on /opt/
+      ansible.posix.acl:
+        path: /opt/
+        entity: gitlab-runner
+        etype: user
+        permissions: rwx
+        state: present
+  tags: app

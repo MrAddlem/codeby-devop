@@ -1,0 +1,95 @@
+---
+# defaults file for ansible-rabbitmq
+rabbitmq_config: []
+# - queue_name: logstash
+#   durable: true
+#   exchange_name: logstash
+#   type: direct
+#   routing_key: logstash
+#   tags: "ha-mode=all,ha-sync-mode=automatic"
+# - queue_name: logstash-quorum
+#   durable: true
+#   exchange_name: logstash-quorum
+#   type: direct
+#   routing_key: logstash
+#   queue_type: quorum
+#   tags: "ha-mode=all,ha-sync-mode=automatic"
+# - policy_pattern: ".*"
+#   vhost: apps
+#   tags: "ha-mode=all,ha-sync-mode=automatic"
+
+# Defines if rabbitmq ha should be configured
+rabbitmq_config_ha: false
+
+rabbitmq_config_service: false
+rabbitmq_config_file: etc/rabbitmq/rabbitmq.config.j2
+rabbitmq_config_env_file: etc/rabbitmq/rabbitmq-env.conf.j2
+rabbitmq_env_config: {}
+
+# rabbitmq_debian_repo: deb http://www.rabbitmq.com/debian/ testing main
+# other repos
+rabbitmq_debian_repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/rabbitmq-server.asc] https://ppa1.rabbitmq.com/rabbitmq/rabbitmq-server/deb/ubuntu {{ ansible_distribution_release }} main"
+rabbitmq_debian_repo_key: "https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-server.9F4587F226208342.key"
+
+rabbitmq_debian_erlang_from_rabbit: true
+rabbitmq_debian_erlang_repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/rabbitmq-erlang.asc] https://ppa1.rabbitmq.com/rabbitmq/rabbitmq-erlang/deb/ubuntu {{ ansible_distribution_release }} main"
+rabbitmq_debian_erlang_repo_key: "https://github.com/rabbitmq/signing-keys/releases/download/3.0/cloudsmith.rabbitmq-erlang.E495BB49CC4BBE5B.key"
+
+# current version if not defined
+rabbitmq_debian_version_defined: true
+rabbitmq_debian_version: 3.13.7-1
+
+# Defines if setting up a rabbitmq cluster
+rabbitmq_enable_clustering: false
+# Defines the inventory host that should be considered master
+rabbitmq_master: None
+
+rabbitmq_erlang_cookie_file: /var/lib/rabbitmq/.erlang.cookie
+
+rabbitmq_listen_port: 5672
+rabbitmq_listeners: []
+# - 127.0.0.1
+# - '::1'
+
+# Uncomment to set cluster partition handling strategy (https://www.rabbitmq.com/partitions.html)
+# rabbitmq_cluster_partition_handling: ignore
+
+rabbitmq_ssl_enable: false
+rabbitmq_ssl_port: 5671
+rabbitmq_ssl_listeners: []
+# - 127.0.0.1
+# - "::1"
+
+rabitmq_ssl_options: {}
+# cacertfile: '"/path/to/testca/cacert.pem"'
+# certfile: '"/path/to/server/cert.pem"'
+# keyfile: '"/path/to/server/key.pem"'
+# verify: verify_peer
+# fail_if_no_peer_cert: "false"
+
+rabbitmq_redhat_repo_key: https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
+rabbitmq_redhat_package: "rabbitmq-server-{{rabbitmq_redhat_version}}-1.el8.noarch.rpm"
+rabbitmq_redhat_url: "https://github.com/rabbitmq/rabbitmq-server/releases/download/v{{rabbitmq_redhat_version}}"
+rabbitmq_redhat_version: 4.0.7
+
+# Define extra vhosts to be created
+rabbitmq_extra_vhosts: []
+# - name: /
+#   state: present
+
+# Define admin user to create in order to login to WebUI
+rabbitmq_users:
+  - name: rabbitmqadmin
+    password: rabbitmqadmin
+    vhost: /
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    # Define comma separated list of tags to assign to user:
+    # management,policymaker,monitoring,administrator
+    # required for management plugin.
+    # https://www.rabbitmq.com/management.html
+    tags: administrator
+
+# comma separated list of plugins to enable
+rabbitmq_plugins: "rabbitmq_management"

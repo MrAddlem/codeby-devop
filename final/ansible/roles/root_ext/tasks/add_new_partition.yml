@@ -1,0 +1,44 @@
+---
+- name: Extend GPT table to use all available space
+  ansible.builtin.command: sgdisk -e "{{ root_ext_dev }}"
+  register: command_result
+  when: free_size > 100000
+  changed_when: command_result.rc == 0
+
+- name: Create new partition
+  community.general.parted:
+    part_start: "{{ part_end }}KiB"
+    device: "{{ root_ext_dev }}"
+    number: "{{ next_part_num }}"
+    label: gpt
+    flags: [lvm]
+    state: present
+  when: free_size > 100000
+
+- name: Detect LVM Setup
+  ansible.builtin.setup:
+    filter: "ansible_lvm"
+    gather_subset: "!all,!min,hardware"
+  register: lvm_facts
+
+- name: Create PV List
+  ansible.builtin.set_fact:
+    # yamllint disable-line rule:line-length
+    pv_list: "{{ lvm_facts.ansible_facts.ansible_lvm.pvs | join(',') }},{{ root_ext_dev }}{{ next_part_num }}"
+
+- name: Update vg
+  community.general.lvg:
+    vg: "{{ root_ext_vg }}"
+    pvs: "{{ pv_list }}"
+
+- name: Extend LV
+  community.general.lvol:
+    vg: "{{ root_ext_vg }}"
+    lv: "{{ root_ext_lv }}"
+    size: +100%FREE
+
+- name: Extend File System
+  community.general.filesystem:
+    fstype: xfs
+    dev: "/dev/mapper/{{ root_ext_vg }}-{{ root_ext_lv }}"
+    resizefs: true

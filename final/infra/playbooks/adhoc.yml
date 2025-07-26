@@ -1,0 +1,19 @@
+---
+
+- name: Configure cloud-init.cfg
+  hosts: all
+  become: true
+  tasks:
+    - name: Configure cloud-init.cfg
+      copy:
+        dest: /etc/cloud/cloud.cfg
+        content: |
+          #cloud-config
+
+          ssh_deletekeys: true
+          ssh_genkeytypes: ['rsa', 'ecdsa', 'ed25519']
+          cloud_init_modules:
+            - ssh
+        owner: root
+        group: root
+        mode: '0644'

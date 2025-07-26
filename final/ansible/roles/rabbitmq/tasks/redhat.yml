@@ -1,0 +1,46 @@
+---
+- name: redhat | installing pre-reqs
+  ansible.builtin.yum:
+    name: ['epel-release', 'wget']
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: redhat | installing erlang
+  ansible.builtin.yum:
+    name: erlang
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: redhat | adding RabbitMQ public GPG key
+  ansible.builtin.rpm_key:
+    key: "{{ rabbitmq_redhat_repo_key }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: redhat | downloading RabbitMQ
+  ansible.builtin.get_url:
+    url: "{{ rabbitmq_redhat_url }}/{{ rabbitmq_redhat_package }}"
+    dest: "/tmp/{{ rabbitmq_redhat_package }}"
+    mode: u=rw,g=r,o=r
+  become: true
+
+- name: redhat | installing RabbitMQ
+  ansible.builtin.yum:
+    name: "/tmp/{{ rabbitmq_redhat_package }}"
+    state: present
+  become: true
+  register: result
+  until: result is successful
+
+- name: redhat | starting and enabling RabbitMQ service
+  ansible.builtin.service:
+    name: rabbitmq-server
+    state: started
+    enabled: true
+  become: true

@@ -1,0 +1,4 @@
+---
+root_ext_dev: /dev/sda
+root_ext_vg: main
+root_ext_lv: root

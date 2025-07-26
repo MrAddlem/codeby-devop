@@ -1,0 +1,5 @@
+# YUM (RedHat, CentOS, etc.) baseurl/gpgkey
+---
+# yamllint disable-line rule:line-length
+nginx_yum_repository_baseurl: "http://nginx.org/packages/centos/{{ ansible_distribution_major_version }}/$basearch/"
+nginx_yum_repository_gpgkey: "https://nginx.org/keys/nginx_signing.key"

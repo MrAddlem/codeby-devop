@@ -1,0 +1,13 @@
+---
+- name: Resize existing PV
+  community.general.lvg:
+    vg: "{{ root_ext_vg }}"
+    pvs: "{{ root_ext_dev }}{{ part_num }}"
+    pvresize: true
+
+- name: Extend LV
+  community.general.lvol:
+    vg: "{{ root_ext_vg }}"
+    lv: "{{ root_ext_lv }}"
+    size: +100%FREE
+    resizefs: true

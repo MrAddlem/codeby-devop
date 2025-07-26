@@ -1,0 +1,11 @@
+---
+stages:
+  - lint
+
+variables:
+  LINT_IMAGE: "baltig.ksb.local:4567/iac/pre-built/lint:1"
+
+include:
+  - project: iac/includes
+    ref: main
+    file: /lint.tmpl.yml

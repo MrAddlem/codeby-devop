@@ -1,0 +1,42 @@
+
+groups:
+- name: BackupMonitoring
+  rules:
+
+  # Для сервисов (лейбл service)
+  - alert: ServiceBackupFailed
+    expr: service_backup_success{service!=""} != 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service backup failed (service={{ $labels.service }})"
+      description: "The backup for service '{{ $labels.service }}' failed (value={{ $value }})."
+
+  - alert: ServerBackupTooOld32h
+    expr: (time() - service_backup_timestamp{service!=""}) > 115200
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service backup older than 32h (service={{ $labels.service }})"
+      description: "The last backup for service '{{ $labels.service }}' is older than 32 hours.\nCurrent age: {{ $value }} seconds."
+
+  # Для серверов (лейбл server)
+  - alert: ServerBackupFailed
+    expr: server_backup_success{server!=""} != 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Server backup failed (server={{ $labels.server }})"
+      description: "The backup for server '{{ $labels.server }}' failed (value={{ $value }})."
+
+  - alert: ServerBackupTooOld12h
+    expr: (time() - server_backup_timestamp{server!=""}) > 43200
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Server backup older than 12h (server={{ $labels.server }})"
+      description: "The last backup for server '{{ $labels.server }}' is older than 12 hours.\nCurrent age: {{ $value }} seconds."

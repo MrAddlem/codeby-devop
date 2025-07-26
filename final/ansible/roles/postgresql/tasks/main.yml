@@ -1,0 +1,49 @@
+---
+- name: PostgreSQL | Add PostgreSQL repository | RHEL
+  ansible.builtin.yum_repository:
+     name: postgresql
+     description: postgresql yum repo
+     baseurl: "{{ postgresql_yum_repository_baseurl }}"
+     gpgkey: "{{ postgresql_yum_repository_gpgkey }}"
+     enabled: true
+
+- name: PostgreSQL | Disable postgresql module (necessary for RHEL8+)
+  ansible.builtin.command:
+     cmd: dnf module disable postgresql -y
+  # yamllint disable-line rule:line-length
+  when: "ansible_distribution_major_version == '8' or ansible_distribution_major_version == '9'"
+  register: disable_postgresql_module
+  changed_when:
+     - "disable_postgresql_module.rc == 0"
+     - "'Disabling modules:\\n postgresql' in disable_postgresql_module.stdout"
+
+- name: Ensure PostgreSQL Python libraries are installed
+  ansible.builtin.yum:
+     name: "{{ postgresql_python_library }}"
+     state: present
+
+- name: Ensure PostgreSQL packages are installed
+  ansible.builtin.yum:
+     name: "{{ postgresql_packages }}"
+     state: present
+
+- name: Initialize PostgreSQL
+  ansible.builtin.include_tasks: initialize.yml
+
+- name: Configure PostgreSQL
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Ensure PostgreSQL is started and enabled on boot.
+  ansible.builtin.service:
+     name: "{{ postgresql_daemon }}"
+     state: "{{ postgresql_service_state }}"
+     enabled: "{{ postgresql_service_enabled }}"
+
+- name: Import PostgreSQL users
+  ansible.builtin.import_tasks: users.yml
+
+- name: Import PostgreSQL databses
+  ansible.builtin.import_tasks: databases.yml
+
+- name: Import PostgreSQL user properties
+  ansible.builtin.import_tasks: users_props.yml

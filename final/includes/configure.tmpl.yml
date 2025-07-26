@@ -1,0 +1,73 @@
+---
+.ansible_image:
+  image: $ANSIBLE_IMAGE
+  tags: [$RUNNER_TAG]
+  stage: configure
+  before_script:
+    - echo $VAULT_PASS > $ANSIBLE_VAULT_PASSWORD_FILE
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+01_update_system:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/update.yml \
+      --tags "update_system"
+  when: manual
+
+02_initial_setup:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "initial_setup"
+  when: manual
+
+03_web:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "web"
+  when: manual
+
+04_db:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "db"
+  when: manual
+
+05_rmq:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "rmq"
+  when: manual
+
+06_app:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "app"
+  when: manual
+
+07_manage_users:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/install.yml \
+      --tags "manage_users"
+  when: manual
+
+08_metrics:
+  extends: .ansible_image
+  script:
+    - |
+      ansible-playbook playbooks/metrics.yml
+  when: manual

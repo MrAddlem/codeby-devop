@@ -1,0 +1,50 @@
+---
+.ansible_image_backup:
+  image: $ANSIBLE_IMAGE
+  tags: [$RUNNER_TAG]
+  stage: backup
+  before_script:
+    - echo $VAULT_PASS > $ANSIBLE_VAULT_PASSWORD_FILE
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | base64 -d | ssh-add -
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+01_init:
+  extends: .ansible_image_backup
+  script:
+    - |
+      ansible-playbook playbooks/backup.yml \
+      --tags "init"
+  when: manual
+
+02_schedule_backup:
+  extends: .ansible_image_backup
+  script:
+    - |
+      ansible-playbook playbooks/backup.yml \
+      --tags "schedule_backup"
+  when: manual
+
+03_backup:
+  extends: .ansible_image_backup
+  script:
+    - |
+      ANSIBLE_DISPLAY_OK_HOSTS=true \
+      ansible-playbook playbooks/backup.yml \
+      -e "BACKUP_SERVERS=$BACKUP_SERVERS" \
+      --tags "backup"
+  rules:
+    - if: $BACKUP_SERVERS
+  when: manual
+
+03_restore:
+  extends: .ansible_image_backup
+  script:
+    - |
+      ANSIBLE_DISPLAY_OK_HOSTS=true \
+      ansible-playbook playbooks/backup.yml \
+      -e "RESTORE_SERVERS=$RESTORE_SERVERS" \
+      --tags "restore"
+  rules:
+    - if: $RESTORE_SERVERS
+  when: manual
